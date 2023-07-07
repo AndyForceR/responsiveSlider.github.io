@@ -1,9 +1,26 @@
 const slider = document.querySelector(".slider");
 const cards = document.querySelectorAll(".card");
+const arrowBtns = document.querySelectorAll(".arrow-btn");
+let cardWidth = slider.offsetWidth / 3;
+
+function resizeCardWidth() {
+  cardWidth = slider.offsetWidth / 3;
+  console.log(cardWidth);
+}
+
+window.onresize = resizeCardWidth;
 
 let isDragging = false,
   startX,
   startScrollLeft;
+
+arrowBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    slider.style.scrollBehavior = "smooth";
+    slider.scrollLeft += btn.id === "prev" ? -cardWidth : cardWidth;
+    slider.style.scrollBehavior = "auto";
+  });
+});
 
 const dragStart = (e) => {
   isDragging = true;
@@ -27,10 +44,8 @@ const dragStop = () => {
 
   // Calculate the index of the active card based on the scroll position
   const scrollLeft = slider.scrollLeft;
-  console.log(scrollLeft);
-  const cardWidth = slider.offsetWidth / 3;
+  // const cardWidth = slider.offsetWidth / 3;
   const activeCardIndex = Math.round(scrollLeft / cardWidth);
-  console.log(activeCardIndex);
 
   // Calculate the scroll position to snap to the active card
   const scrollSnapPosition = activeCardIndex * cardWidth;
@@ -45,3 +60,7 @@ const dragStop = () => {
 slider.addEventListener("mousedown", dragStart);
 slider.addEventListener("mousemove", dragging);
 document.addEventListener("mouseup", dragStop);
+
+slider.addEventListener("touchstart", dragStart);
+slider.addEventListener("touchmove", dragging);
+document.addEventListener("touchend", dragStop);
