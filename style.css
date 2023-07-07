@@ -1,0 +1,52 @@
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  height: 100vh;
+  background: linear-gradient(to left top, #031a9a, #8b53ff);
+}
+.slider {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% / 3));
+  overflow-x: hidden;
+}
+.card {
+  margin: 5px;
+  width: 100px;
+  height: 130px;
+  background: #fff;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #031a9a;
+  justify-self: center;
+}
+.circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+.circle1 {
+  background: #8b53ff;
+}
+.circle2 {
+  background: #031a9a;
+}
+.circle3 {
+  background: #898396;
+}
+.circle4 {
+  background: #3f948d;
+}
+.circle5 {
+  background: #777336;
+}
+.circle6 {
+  background: #2d8834;
+}
