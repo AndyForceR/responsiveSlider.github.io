@@ -1,66 +1,84 @@
-const slider = document.querySelector(".slider");
-const cards = document.querySelectorAll(".card");
-const arrowBtns = document.querySelectorAll(".arrow-btn");
-let cardWidth = slider.offsetWidth / 3;
-
-function resizeCardWidth() {
-  cardWidth = slider.offsetWidth / 3;
-  console.log(cardWidth);
-}
-
-window.onresize = resizeCardWidth;
+const slider = document.querySelector(".slider-container"),
+  slides = Array.from(document.querySelectorAll(".slide"));
 
 let isDragging = false,
-  startX,
-  startScrollLeft;
+  startPos = 0,
+  currentTranslate = 0,
+  prevTranslate = 0,
+  animationID = 0,
+  currentIndex = 0;
 
-arrowBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    slider.style.scrollBehavior = "smooth";
-    slider.scrollLeft += btn.id === "prev" ? -cardWidth : cardWidth;
-    slider.style.scrollBehavior = "auto";
-  });
+slides.forEach((slide, index) => {
+  const slideImage = slide.querySelector("img");
+  slideImage.addEventListener("dragstart", (e) => e.preventDefault());
+
+  // Touch events
+  slide.addEventListener("touchstart", touchStart(index));
+  slide.addEventListener("touchend", touchEnd);
+  slide.addEventListener("touchmove", touchMove);
+
+  // Mouse events
+  slide.addEventListener("mousedown", touchStart(index));
+  slide.addEventListener("mouseup", touchEnd);
+  slide.addEventListener("mouseleave", touchEnd);
+  slide.addEventListener("mousemove", touchMove);
 });
 
-const dragStart = (e) => {
-  isDragging = true;
-  startX = e.pageX;
-  startScrollLeft = slider.scrollLeft;
-
-  slider.style.cursor = "grab";
-  slider.style.userSelect = "none";
+// Disable context menu
+window.oncontextmenu = function (event) {
+  event.preventDefault();
+  event.stopPropagation();
+  return false;
 };
 
-const dragging = (e) => {
-  if (!isDragging) return;
-  const scrollX = startScrollLeft - (e.pageX - startX);
-  slider.scrollLeft = scrollX;
-};
+function touchStart(index) {
+  return function (event) {
+    currentIndex = index;
+    startPos = getPositionX(event);
+    isDragging = true;
 
-const dragStop = () => {
+    animationID = requestAnimationFrame(animation);
+    slider.classList.add("grabbing");
+  };
+}
+
+function touchEnd() {
   isDragging = false;
-  slider.style.cursor = "unset";
-  slider.style.userSelect = "unset";
+  cancelAnimationFrame(animationID);
 
-  // Calculate the index of the active card based on the scroll position
-  const scrollLeft = slider.scrollLeft;
-  // const cardWidth = slider.offsetWidth / 3;
-  const activeCardIndex = Math.round(scrollLeft / cardWidth);
+  const movedBy = currentTranslate - prevTranslate;
 
-  // Calculate the scroll position to snap to the active card
-  const scrollSnapPosition = activeCardIndex * cardWidth;
+  if (movedBy < -10 && currentIndex < slides.length - 1) currentIndex += 1;
 
-  // Animate the scroll to the snap position
-  slider.scrollTo({
-    left: scrollSnapPosition,
-    behavior: "smooth",
-  });
-};
+  if (movedBy > 10 && currentIndex > 0) currentIndex -= 1;
 
-slider.addEventListener("mousedown", dragStart);
-slider.addEventListener("mousemove", dragging);
-document.addEventListener("mouseup", dragStop);
+  setPositionByIndex();
 
-slider.addEventListener("touchstart", dragStart);
-slider.addEventListener("touchmove", dragging);
-document.addEventListener("touchend", dragStop);
+  slider.classList.remove("grabbing");
+}
+
+function touchMove(event) {
+  if (isDragging) {
+    const currentPosition = getPositionX(event);
+    currentTranslate = prevTranslate + currentPosition - startPos;
+  }
+}
+
+function getPositionX(event) {
+  return event.type.includes("mouse") ? event.pageX : event.touches[0].clientX;
+}
+
+function animation() {
+  setSliderPosition();
+  if (isDragging) requestAnimationFrame(animation);
+}
+
+function setSliderPosition() {
+  slider.style.transform = `translateX(${currentTranslate}px)`;
+}
+
+function setPositionByIndex() {
+  currentTranslate = currentIndex * -window.innerWidth;
+  prevTranslate = currentTranslate;
+  setSliderPosition();
+}
